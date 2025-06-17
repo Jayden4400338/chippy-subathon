@@ -190,9 +190,9 @@
     <script>
         // ====== CONFIG - tokens and channel ID - CHANGE THESE ONLY ======
         const CONFIG = {
-            STREAMLABS_TOKEN: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6IjJFRUNGQjgzRjU1RDBGRjU0OENFIiwicmVhZF9vbmx5Ijp0cnVlLCJwcmV2ZW50X21hc3RlciI6dHJ1ZSwidHdpdGNoX2lkIjoiNTg4NTI5NDg0In0.HxsUDfCr7jNQCyO9T3e_bOx6vf8jU7RccInRnTFI6nc",
-            TWITCH_OAUTH_TOKEN: "2bwetnj1udyzrsbw2nzxab7ejsmggd",
-            TWITCH_CHANNEL_ID: "588529484"
+            STREAMLABS_TOKEN: "YOUR_STREAMLABS_TOKEN_HERE",
+            TWITCH_OAUTH_TOKEN: "YOUR_TWITCH_TOKEN_HERE",
+            TWITCH_CHANNEL_ID: "YOUR_CHANNEL_ID_HERE"
         };
 
         // ====== STATE ======
@@ -348,7 +348,7 @@
         });
 
         // ====== Streamlabs WebSocket Connection ======
-const socket = new WebSocket(`wss://sockets.streamlabs.com?token=${CONFIG.STREAMLABS_TOKEN}`);
+
 
 socket.addEventListener('open', () => {
     console.log('Connected to Streamlabs WebSocket');
@@ -385,6 +385,35 @@ socket.addEventListener('error', (error) => {
 });
 
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
+<script>
+    const socket = io();  // Connect to your Python backend
+
+    socket.on('streamlabs_status', (data) => {
+        showNotification(data.status === "connected" ? "Connected to Streamlabs" : "Disconnected");
+    });
+
+    socket.on('streamlabs_error', (data) => {
+        showNotification("Streamlabs Error: " + data.error);
+    });
+
+    socket.on('streamlabs_event', (data) => {
+        if (data.type === 'subscription') {
+            addTime('subs', data.message.amount || 1, data.message.displayName);
+            showNotification(`${data.message.displayName} subscribed! Added time.`);
+        } else if (data.type === 'bits') {
+            addTime('bits', data.message.bits, data.message.displayName);
+            showNotification(`${data.message.displayName} cheered ${data.message.bits} bits! Added time.`);
+        } else if (data.type === 'redeem') {
+            addTime('points', data.message.reward.cost, data.message.displayName);
+            showNotification(`${data.message.displayName} redeemed ${data.message.reward.title}! Added time.`);
+        } else if (data.type === 'donation') {
+            addTime('donation', parseFloat(data.message.amount), data.message.displayName);
+            showNotification(`${data.message.displayName} donated $${data.message.amount}! Added time.`);
+        }
+    });
+</script>
+
 </body>
 
 </html>
